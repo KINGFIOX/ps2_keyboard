@@ -90,6 +90,7 @@
                 nixd
                 nvfetcher
                 clang-tools
+                gtkwave
               ];
               CIRCT_INSTALL_PATH = circt-install;
               MLIR_INSTALL_PATH = mlir-install;

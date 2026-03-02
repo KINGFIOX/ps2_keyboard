@@ -40,8 +40,13 @@ verilated_threads_cpp = custom_target('copy_verilated_threads',
   command: ['cp', verilator_root / 'include' / 'verilated_threads.cpp', '@OUTPUT@'],
 )
 
+verilated_vcd_cpp = custom_target('copy_verilated_vcd',
+  output: 'verilated_vcd_c.cpp',
+  command: ['cp', verilator_root / 'include' / 'verilated_vcd_c.cpp', '@OUTPUT@'],
+)
+
 executable('ps2_keyboard_sim',
-  sources: ['sim/main.cpp', auto_bind, verilated_cpp, verilated_threads_cpp],
+  sources: ['sim/main.cpp', auto_bind, verilated_cpp, verilated_threads_cpp, verilated_vcd_cpp],
   include_directories: [
     include_directories('sim'),
     include_directories(verilator_root / 'include'),
