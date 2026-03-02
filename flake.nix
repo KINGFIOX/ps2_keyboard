@@ -63,25 +63,40 @@
               enable = true;
               excludes = [ "*/generated.nix" ];
             };
-            programs.rustfmt.enable = true;
           };
 
           devShells.default =
             with pkgs;
-            mkShell (
-              {
-                inputsFrom = [ gcd.gcd-compiled ];
-                packages = [
-                  cargo
-                  rust-analyzer
-                  nixd
-                  nvfetcher
-                ];
-                RUST_SRC_PATH = "${rust.packages.stable.rustPlatform.rustLibSrc}";
-              }
-              // gcd.tb-dpi-lib.env
-              // gcd.gcd-compiled.env
-            );
+            mkShell ({
+              inputsFrom = [
+                dependencies.ivy-chisel
+                dependencies.ivy-omlib
+              ];
+              nativeBuildInputs = [
+                verilator
+                meson
+                ninja
+                pkg-config
+                python3
+              ];
+              buildInputs = [
+                SDL2
+                SDL2_image
+                SDL2_ttf
+              ];
+              packages = [
+                mill
+                metals
+                nixd
+                nvfetcher
+                clang-tools
+              ];
+              CIRCT_INSTALL_PATH = circt-install;
+              MLIR_INSTALL_PATH = mlir-install;
+              JEXTRACT_INSTALL_PATH = jextract-21;
+              NVBOARD_HOME = "/home/wangfiox/Documents/ps2_keyboard/subprojects/nvboard/";
+              JAVA_TOOL_OPTIONS = "-Divy.home=${dependencies.ivyLocalRepo} -Dcoursier.ivy.home=${dependencies.ivyLocalRepo}";
+            });
         };
     };
 }

@@ -1,0 +1,3 @@
+[submodule "subprojects/nvboard"]
+	path = subprojects/nvboard
+	url = https://github.com/KINGFIOX/nvboard.git

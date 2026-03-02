@@ -10,6 +10,8 @@ let
     if val == "" then builtins.throw "${key} not set or '--impure' not applied" else val;
 in
 final: prev: {
+  dependencies = final.callPackage ./dependencies { };
+
   espresso = final.callPackage ./pkgs/espresso.nix { };
 
   mill =
@@ -25,10 +27,4 @@ final: prev: {
       };
       passthru = { inherit jre; };
     };
-
-  vcs-fhs-env = final.callPackage ./pkgs/vcs-fhs-env.nix { inherit getEnv'; };
-
-  cds-fhs-env = final.callPackage ./pkgs/cds-fhs-env.nix { inherit getEnv'; };
-
-  gcd = final.callPackage ./gcd { };
 }

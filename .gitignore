@@ -6,10 +6,10 @@
 .vscode/
 .envrc
 .direnv/
+.cache
 
 out/
 result*
-gcd-sim-result/
 /dependencies/
 target/
 
@@ -17,3 +17,5 @@ target/
 *.fst
 *.fsdb
 *.log
+
+build/

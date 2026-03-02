@@ -1,0 +1,7 @@
+top=PS2Keyboard
+
+ps2Clk PS2_CLK
+ps2Data PS2_DAT
+nextdata BTNC
+ready LD8
+overflow LD9

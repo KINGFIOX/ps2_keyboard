@@ -1,0 +1,13 @@
+option(
+  'nvboard_dir',
+  type: 'string',
+  value: 'subprojects/nvboard',
+  description: 'Path to NVBoard repository (relative to project root, or absolute for external install)',
+)
+
+option(
+  'verilator_obj_dir',
+  type: 'string',
+  value: 'build/obj_dir',
+  description: 'Path to verilator output directory (relative to project root)',
+)
