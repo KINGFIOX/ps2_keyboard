@@ -12,8 +12,6 @@ in
 final: prev: {
   dependencies = final.callPackage ./dependencies { };
 
-  espresso = final.callPackage ./pkgs/espresso.nix { };
-
   mill =
     let
       jre = final.jdk21;
