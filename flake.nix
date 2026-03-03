@@ -83,6 +83,7 @@
                 SDL2
                 SDL2_image
                 SDL2_ttf
+                zlib
               ];
               packages = [
                 mill

@@ -42,7 +42,7 @@ verilate: $(OBJ_DIR)/V$(TOPMODULE)__ALL.a
 $(OBJ_DIR)/V$(TOPMODULE)__ALL.a: $(RTL_DIR)/$(TOPMODULE).sv
 	@mkdir -p $(OBJ_DIR)
 	$(VERILATOR) --cc --build -j 0 \
-		--trace \
+		--trace-fst \
 		--top-module $(TOPMODULE) \
 		--Mdir $(OBJ_DIR) \
 		-Wno-fatal \
@@ -69,7 +69,7 @@ run: build
 	@NVBOARD_HOME="$(NVBOARD_HOME)" SDL_VIDEODRIVER=x11 $(TARGET) +trace
 
 wave:
-	gtkwave ./ps2_keyboard.vcd
+	gtkwave ./ps2_keyboard.fst
 
 # ==============================================================================
 #  Clean

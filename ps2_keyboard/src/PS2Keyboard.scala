@@ -4,64 +4,68 @@
 package org.chipsalliance.ps2_keyboard
 
 import chisel3._
-import chisel3.experimental.hierarchy.{instantiable, Instance, Instantiate}
-import chisel3.properties.{AnyClassType, Class, Property}
-import chisel3.util.Cat
+import chisel3.util._
 
 /** Interface of [[PS2Keyboard]]. */
 class PS2KeyboardInterface extends Bundle {
-  val clock    = Input(Clock())
-  val reset    = Input(Bool())
   val ps2Clk   = Input(Bool())
   val ps2Data  = Input(Bool())
   val nextdata = Input(Bool())
   val data     = Output(UInt(8.W))
-  val ready    = Output(Bool())
+  val valid    = Output(Bool())
   val overflow = Output(Bool())
 }
 
 /** Hardware implementation of PS/2 keyboard receiver. */
-@instantiable
 class PS2Keyboard
-    extends FixedIORawModule(new PS2KeyboardInterface)
+    extends FixedIOModule(new PS2KeyboardInterface)
     with ImplicitClock
     with ImplicitReset {
-  override protected def implicitClock: Clock = io.clock
-  override protected def implicitReset: Reset = io.reset
 
-  // Internal signals, aligned with the original Verilog implementation.
+  // buffer, hold one byte of data
+  // one byte consist of 11bit
+  // [start, b0, b1, b2, b3, b4, b5, b6, b7, parity, stop]
   val buffer = Reg(Vec(10, Bool()))
-  val fifo   = Reg(Vec(8, UInt(8.W)))
-  val wPtr   = RegInit(0.U(3.W))
-  val rPtr   = RegInit(0.U(3.W))
   val count  = RegInit(0.U(4.W))
 
-  val readyReg    = RegInit(false.B)
-  val overflowReg = RegInit(false.B)
+  // data queue
+  val queue = Module( new Queue(UInt(8.W), entries = 8) )
+  queue.io.enq.valid := false.B
+  queue.io.enq.bits := Cat(buffer(8), buffer(7), buffer(6), buffer(5), buffer(4), buffer(3), buffer(2), buffer(1))
+  queue.io.deq.ready := false.B
 
-  val ps2ClkSync = RegInit(0.U(3.W))
-  ps2ClkSync := Cat(ps2ClkSync(1, 0), io.ps2Clk)
-  val sampling = ps2ClkSync(2) && !ps2ClkSync(1)
+  // clock sync
+  val ps2clk0Q = RegNext(io.ps2Clk)
+  val ps2clk1Q = RegNext(ps2clk0Q)
+  val ps2clk2Q = RegNext(ps2clk1Q)
+  val samplingW = ps2clk2Q && !ps2clk1Q
 
-  when(readyReg) {
-    when(io.nextdata) {
-      rPtr := rPtr + 1.U
-      when(wPtr === (rPtr + 1.U)) {
-        readyReg := false.B
-      }
+  // io
+  io.data     := queue.io.deq.bits
+  io.valid    := queue.io.deq.valid
+  // overflow
+  // enq.valid -> !enq.ready
+  io.overflow := false.B
+  when(queue.io.enq.valid) {
+    when(!queue.io.enq.ready) { // missing handshake
+      io.overflow := true.B
     }
   }
 
-  when(sampling) {
+  when(queue.io.deq.valid) {
+    when(io.nextdata) {
+      queue.io.deq.ready := true.B
+    }
+  }
+
+  when(samplingW) {
     when(count === 10.U) {
       val startOk  = !buffer(0)
       val stopOk   = io.ps2Data
+      // buffer[1:10) <=> buffer[1:9]
       val parityOk = buffer.slice(1, 10).reduce(_ ^ _)
       when(startOk && stopOk && parityOk) {
-        fifo(wPtr) := Cat(buffer(8), buffer(7), buffer(6), buffer(5), buffer(4), buffer(3), buffer(2), buffer(1))
-        wPtr := wPtr + 1.U
-        readyReg := true.B
-        overflowReg := overflowReg || (rPtr === (wPtr + 1.U))
+        queue.io.enq.valid := true.B
       }
       count := 0.U
     }.otherwise {
@@ -70,7 +74,4 @@ class PS2Keyboard
     }
   }
 
-  io.data     := fifo(rPtr)
-  io.ready    := readyReg
-  io.overflow := overflowReg
 }
